@@ -1,4 +1,4 @@
 python101
 =========
 
-Programming with Sam
+Learning to program with Python.
