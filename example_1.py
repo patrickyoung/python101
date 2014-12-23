@@ -52,35 +52,7 @@ class Match:
         else:
             return None
 
-    @staticmethod
-    def load_data(match_data):
-        """
-            Load match data from a comma separated list of values.
-
-            Given a comma separated list of soccer match data
-            When I process the data with load_match_data
-            Then a valid match object is created
-
-            >>> test_data = "1/1/2014,Everton,Manchester City,3,1,1,1"
-            >>> test_match = Match.load_data(test_data)
-            >>> print(test_match.home_team)
-            Everton
-
-            >>> type(test_match.date)
-            <class 'datetime.datetime'>
-
-        """
-        parsed_match_data = match_data.split(',')
-        match = Match(parsed_match_data[0],
-            parsed_match_data[1],
-            parsed_match_data[2],
-            parsed_match_data[3],
-            parsed_match_data[4])
-        return match
-
-
-class MatchAnalyzer:
-
+class MatchDataLoader:
     def __init__(self, file_name):
         """
             Load match data file and return a list of matches.
@@ -90,14 +62,43 @@ class MatchAnalyzer:
             And create Matchs from the data
             Then a list of valid Match objects are created
 
-            >>> match_data = MatchAnalyzer("stats.csv").matches
+            >>> loader = MatchDataLoader("stats.csv")
+            >>> len(loader.data_file.readlines())
+            2
+        """
+        self.data = []
+        self.data_file = open(file_name, 'r')
+
+    def load(self):
+        """
+            Load match data from a comma separated list of values.
+
+            Given a comma separated list of soccer match data
+            When I process the data with load_match_data
+            Then a valid match object is created
+
+            >>> match_data = MatchDataLoader("stats.csv").load()
             >>> len(match_data)
             2
         """
-        self.matches = []
-        data_file = open(file_name, 'r').readlines()
-        for match in map(Match.load_data, data_file):
-            self.matches.append(match)
+        for row in map(self.parse, self.data_file.readlines()):
+            self.data.append(row)
+
+        return self.data
+
+    def parse(self, row):
+        parsed_data = row.split(',')
+        data_object = Match(parsed_data[0],
+            parsed_data[1],
+            parsed_data[2],
+            parsed_data[3],
+            parsed_data[4])
+        return data_object
+
+class MatchAnalyzer:
+
+    def __init__(self, match_data):
+        self.matches = match_data.load()
 
     def number_of_matches(self):
         """
@@ -107,7 +108,10 @@ class MatchAnalyzer:
             When I ask for the number of matches
             Then the total number of matches loaded is returned
 
-            >>> match_analyzer = MatchAnalyzer("stats.csv")
+            >>> loader = MatchDataLoader("stats.csv")
+
+            >>> match_analyzer = MatchAnalyzer(loader)
+
             >>> match_analyzer.number_of_matches()
             2
 
@@ -122,7 +126,10 @@ class MatchAnalyzer:
             When I request a list of matches by team
             Then I get a list of matches the team is playing in (home or away)
 
-            >>> match_analyzer = MatchAnalyzer("stats.csv")
+            >>> loader = MatchDataLoader("stats.csv")
+
+            >>> match_analyzer = MatchAnalyzer(loader)
+            
             >>> len(match_analyzer.team_matches("Everton"))
             2
             >>> len(match_analyzer.team_matches("Stoke City"))
@@ -134,7 +141,10 @@ class MatchAnalyzer:
 
     def matches_won(self, team_name, include_ties=False):
         """
-            >>> match_analyzer = MatchAnalyzer("stats.csv")
+            >>> loader = MatchDataLoader("stats.csv")
+
+            >>> match_analyzer = MatchAnalyzer(loader)
+
             >>> len(match_analyzer.matches_won("Everton"))
             1
             >>> len(match_analyzer.matches_won("Everton", True))
@@ -152,8 +162,6 @@ class MatchAnalyzer:
         else:
             wins = [match for match in team_matches if match.winner() == team_name]
         return wins
-
-
 
 if __name__ == "__main__":
     import doctest
