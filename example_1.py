@@ -1,6 +1,12 @@
+"""
+    Process EPL football match statistics.
+"""
 import calendar
 
-class Match:
+class Match(object):
+    """
+        Used to collect and report football match statistics.
+    """
     def __init__(self, date, home_team, away_team, home_team_score, away_team_score):
         """
         Given initialization data
@@ -8,7 +14,6 @@ class Match:
         Then match properties are populated
 
         >>> test_match = Match("1/1/2014", "Everton", "Manchester City", 3, 1)
-
         >>> print(test_match.home_team)
         Everton
 
@@ -26,7 +31,7 @@ class Match:
         self.away_team_score = away_team_score
 
     def __str__(self):
-        return "\%s | \%s" % (self.home_team, self.away_team)
+        return "%s | %s" % (self.home_team, self.away_team)
 
     def winner(self):
         """
@@ -52,8 +57,11 @@ class Match:
         else:
             return None
 
-class MatchDataLoader:
-    def __init__(self, file_name):
+class MatchDataLoader(object):
+    """
+        Load match data from a text file.
+    """
+    def __init__(self, input_file):
         """
             Load match data file and return a list of matches.
 
@@ -62,12 +70,14 @@ class MatchDataLoader:
             And create Matchs from the data
             Then a list of valid Match objects are created
 
-            >>> loader = MatchDataLoader("stats.csv")
+            >>> from io import StringIO
+            >>> match_data = open("stats.csv", 'r')
+            >>> loader = MatchDataLoader(match_data)
             >>> len(loader.data_file.readlines())
             2
         """
         self.data = []
-        self.data_file = open(file_name, 'r')
+        self.data_file = input_file #open(file_name, 'r')
 
     def load(self):
         """
@@ -77,26 +87,37 @@ class MatchDataLoader:
             When I process the data with load_match_data
             Then a valid match object is created
 
-            >>> match_data = MatchDataLoader("stats.csv").load()
-            >>> len(match_data)
+            >>> from io import StringIO
+            >>> match_data = open("stats.csv", 'r')
+            >>> loader = MatchDataLoader(match_data)
+            >>> len(loader.load())
             2
         """
-        for row in map(self.parse, self.data_file.readlines()):
+        for row in [self.parse(row) for row in self.data_file.readlines()]:
             self.data.append(row)
 
         return self.data
 
-    def parse(self, row):
+    @staticmethod
+    def parse(row):
+        """
+            CSV parse a row from the data file.
+
+            >>> from io import StringIO
+            >>> match_data = open("stats.csv", 'r')
+            >>> loader = MatchDataLoader(match_data)
+            >>> loader.parse("1/1/2014,Everton,Manchester City,3,1").home_team
+            'Everton'
+        """
         parsed_data = row.split(',')
-        data_object = Match(parsed_data[0],
-            parsed_data[1],
-            parsed_data[2],
-            parsed_data[3],
-            parsed_data[4])
+        data_object = Match(parsed_data[0], parsed_data[1], parsed_data[2], \
+            parsed_data[3], parsed_data[4])
         return data_object
 
-class MatchAnalyzer:
-
+class MatchAnalyzer(object):
+    """
+        Analyze match results.
+    """
     def __init__(self, match_data):
         self.matches = match_data
 
@@ -108,7 +129,8 @@ class MatchAnalyzer:
             When I ask for the number of matches
             Then the total number of matches loaded is returned
 
-            >>> matches = [Match("1/1/2014","Everton","Arsenal",2,0), Match("1/1/2014","Everton","Arsenal",2,0)]
+            >>> matches = [Match("1/1/2014","Everton","Stoke City",2,0)]
+            >>> matches = matches + [Match("1/1/2014","Everton","Arsenal",2,2)]
             >>> match_analyzer = MatchAnalyzer(matches)
             >>> match_analyzer.number_of_matches()
             2
@@ -124,7 +146,8 @@ class MatchAnalyzer:
             When I request a list of matches by team
             Then I get a list of matches the team is playing in (home or away)
 
-            >>> matches = [Match("1/1/2014","Everton","Stoke City",2,0), Match("1/1/2014","Everton","Arsenal",2,0)]
+            >>> matches = [Match("1/1/2014","Everton","Stoke City",2,0)]
+            >>> matches = matches + [Match("1/1/2014","Everton","Arsenal",2,2)]
             >>> match_analyzer = MatchAnalyzer(matches)
 
             >>> len(match_analyzer.team_matches("Everton"))
@@ -134,11 +157,13 @@ class MatchAnalyzer:
             >>> len(match_analyzer.team_matches("NOT A REAL TEAM"))
             0
         """
-        return [match for match in self.matches if (match.home_team == team_name or match.away_team == team_name)]
+        return [match for match in self.matches \
+            if match.home_team == team_name or match.away_team == team_name]
 
     def matches_won(self, team_name, include_ties=False):
         """
-            >>> matches = [Match("1/1/2014","Everton","Stoke City",2,0), Match("1/1/2014","Everton","Arsenal",2,2)]
+            >>> matches = [Match("1/1/2014","Everton","Stoke City",2,0)]
+            >>> matches = matches + [Match("1/1/2014","Everton","Arsenal",2,2)]
             >>> match_analyzer = MatchAnalyzer(matches)
 
             >>> len(match_analyzer.matches_won("Everton"))
@@ -154,9 +179,11 @@ class MatchAnalyzer:
 
         team_matches = self.team_matches(team_name)
         if include_ties:
-            wins = [match for match in team_matches if (match.winner() == team_name or match.winner() == None)]
+            wins = [match for match in team_matches \
+                if match.winner() == team_name or match.winner() == None]
         else:
-            wins = [match for match in team_matches if match.winner() == team_name]
+            wins = [match for match in team_matches \
+                if match.winner() == team_name]
         return wins
 
 if __name__ == "__main__":
