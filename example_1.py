@@ -98,7 +98,7 @@ class MatchDataLoader:
 class MatchAnalyzer:
 
     def __init__(self, match_data):
-        self.matches = match_data.load()
+        self.matches = match_data
 
     def number_of_matches(self):
         """
@@ -108,10 +108,8 @@ class MatchAnalyzer:
             When I ask for the number of matches
             Then the total number of matches loaded is returned
 
-            >>> loader = MatchDataLoader("stats.csv")
-
-            >>> match_analyzer = MatchAnalyzer(loader)
-
+            >>> matches = [Match("1/1/2014","Everton","Arsenal",2,0), Match("1/1/2014","Everton","Arsenal",2,0)]
+            >>> match_analyzer = MatchAnalyzer(matches)
             >>> match_analyzer.number_of_matches()
             2
 
@@ -126,13 +124,12 @@ class MatchAnalyzer:
             When I request a list of matches by team
             Then I get a list of matches the team is playing in (home or away)
 
-            >>> loader = MatchDataLoader("stats.csv")
+            >>> matches = [Match("1/1/2014","Everton","Stoke City",2,0), Match("1/1/2014","Everton","Arsenal",2,0)]
+            >>> match_analyzer = MatchAnalyzer(matches)
 
-            >>> match_analyzer = MatchAnalyzer(loader)
-            
             >>> len(match_analyzer.team_matches("Everton"))
             2
-            >>> len(match_analyzer.team_matches("Stoke City"))
+            >>> len(match_analyzer.team_matches("Arsenal"))
             1
             >>> len(match_analyzer.team_matches("NOT A REAL TEAM"))
             0
@@ -141,9 +138,8 @@ class MatchAnalyzer:
 
     def matches_won(self, team_name, include_ties=False):
         """
-            >>> loader = MatchDataLoader("stats.csv")
-
-            >>> match_analyzer = MatchAnalyzer(loader)
+            >>> matches = [Match("1/1/2014","Everton","Stoke City",2,0), Match("1/1/2014","Everton","Arsenal",2,2)]
+            >>> match_analyzer = MatchAnalyzer(matches)
 
             >>> len(match_analyzer.matches_won("Everton"))
             1
