@@ -49,13 +49,14 @@ class Match(object):
             'Manchester City'
 
             >>> Match("1/1/2014", "Everton", "Manchester City", 1, 1).winner()
+            'TIE'
         """
         if self.home_team_score > self.away_team_score:
             return self.home_team
         elif self.home_team_score < self.away_team_score:
             return self.away_team
         else:
-            return None
+            return "TIE"
 
 class MatchDataLoader(object):
     """
@@ -180,7 +181,7 @@ class MatchAnalyzer(object):
         team_matches = self.team_matches(team_name)
         if include_ties:
             wins = [match for match in team_matches \
-                if match.winner() == team_name or match.winner() == None]
+                if match.winner() == team_name or match.winner() == "TIE"]
         else:
             wins = [match for match in team_matches \
                 if match.winner() == team_name]
